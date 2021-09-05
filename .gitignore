@@ -1,0 +1,6 @@
+*.swp
+*.bin
+*.o
+*.elf
+*.hex
+main
