@@ -8,6 +8,8 @@
 
 #include "main.h"
 
+extern void ets_isr_unmask();
+
 static os_timer_t os_timer = {0};
 
 /* Buffer to be passed to interrupt handler. This is not used in this case, as
@@ -15,7 +17,7 @@ static os_timer_t os_timer = {0};
 static volatile uint8_t *rx_buffer;
 
 /* Line buffer */
-static uint8_t rx_line[255] = {0};
+static char rx_line[255] = {0};
 
 /* Position in the buffer */
 static uint8_t rx_line_pos = 0;
@@ -39,9 +41,9 @@ static ICACHE_FLASH_ATTR void uart_byte_out(uint8_t byte)
 
 /* Sends a string of bytes to UART0
  */
-static ICACHE_FLASH_ATTR void uart_str_out(uint8_t *s)
+static ICACHE_FLASH_ATTR void uart_str_out(char *s)
 {
-    uint8_t *c = s;
+    char *c = s;
     while (*c)
 	uart_byte_out(*c++);
 }
@@ -90,7 +92,7 @@ static void main_on_timer(void *arg)
     /* Process a completed line or a line longer than 255 characters
      */
     if (rx_line_done || rx_line_pos >= 255) {
-	uint8_t *s0 = &rx_line[0], *s1 = "reset";
+	char *s0 = &rx_line[0], *s1 = "reset";
 
 	/* Restart the system if the 'reset' command is received; otherwise,
 	 * send the line to UART.
