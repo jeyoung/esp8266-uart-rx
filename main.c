@@ -8,12 +8,16 @@
 
 #include "main.h"
 
+/* This is put here to prevent compiler warning, but its rightful place should
+ * be in 'ets_sys.h'.
+ */
 extern void ets_isr_unmask();
 
 static os_timer_t os_timer = {0};
 
 /* Buffer to be passed to interrupt handler. This is not used in this case, as
- * we read the FIFO buffer directly. */
+ * we read the FIFO buffer directly.
+ */
 static volatile uint8_t *rx_buffer;
 
 /* Line buffer */
@@ -30,7 +34,8 @@ static uint8_t rx_line_done = 0;
 static ICACHE_FLASH_ATTR void uart_byte_out(uint8_t byte)
 {
     /* Wait until the buffered data drops below 128 bytes before sending out
-     * the byte */
+     * the byte
+     */
     while (1) {
 	uint8_t fifo_tx_cnt = (READ_PERI_REG(UART_STATUS(UART0)) >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT;
 	if (fifo_tx_cnt < 128)
@@ -61,18 +66,22 @@ void uart0_rx_intr_handler(void *para)
      * the UART_CONF1 register.
      */
     if (UART_RXFIFO_FULL_INT_ST == (uart_int_status & UART_RXFIFO_FULL_INT_ST)) {
-	/* Read the number of bytes in the RX FIFO */
+	/* Read the number of bytes in the RX FIFO
+	 */
 	uint8_t fifo_rx_cnt = (READ_PERI_REG(UART_STATUS(UART0)) >> UART_RXFIFO_CNT_S) & UART_RXFIFO_CNT;
 
 	/* Read the byte(s) and append them to the line, up to 255 characters
-	 * per line */
+	 * per line
+	 */
 	uint8_t i;
 	for (i = 0; i < fifo_rx_cnt; ++i) {
 	    uint8_t ch = READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
-	    /* Output the byte for good measure */
+	    /* Output the byte for good measure
+	     */
 	    uart_byte_out(ch);
 	    /* If the user presses Enter (0x0D), consider the line to be
-	     * completed. */
+	     * completed.
+	     */
 	    if (ch == 0x0D) {
 		rx_line[rx_line_pos++] = 0;
 		rx_line_done = 1;
@@ -80,7 +89,8 @@ void uart0_rx_intr_handler(void *para)
 		rx_line[rx_line_pos++] = ch;
 	}
 	/* Clear the interrupt flag to signal that the interrupt has been
-	 * handled */
+	 * handled
+	 */
 	WRITE_PERI_REG(UART_INT_CLR(UART0), UART_RXFIFO_FULL_INT_CLR);
     }
 }
