@@ -24,7 +24,7 @@ static volatile uint8_t *rx_buffer;
 static char rx_line[255] = {0};
 
 /* Position in the buffer */
-static uint8_t rx_line_pos = 0;
+static uint8_t rx_line_index = 0;
 
 /* Indicates whether the line is considered complete */
 static uint8_t rx_line_done = 0;
@@ -83,10 +83,10 @@ void uart0_rx_intr_handler(void *para)
 	     * completed.
 	     */
 	    if (ch == 0x0D) {
-		rx_line[rx_line_pos++] = 0;
+		rx_line[rx_line_index++] = 0;
 		rx_line_done = 1;
-	    } else if (rx_line_pos < 255)
-		rx_line[rx_line_pos++] = ch;
+	    } else if (rx_line_index < 255)
+		rx_line[rx_line_index++] = ch;
 	}
 	/* Clear the interrupt flag to signal that the interrupt has been
 	 * handled
@@ -101,7 +101,7 @@ static void main_on_timer(void *arg)
 {
     /* Process a completed line or a line longer than 255 characters
      */
-    if (rx_line_done || rx_line_pos >= 255) {
+    if (rx_line_done || rx_line_index >= 255) {
 	char *s0 = &rx_line[0], *s1 = "reset";
 
 	/* Restart the system if the 'reset' command is received; otherwise,
@@ -118,7 +118,7 @@ static void main_on_timer(void *arg)
 	    uart_str_out("\r\n");
 	}
 	rx_line_done = 0;
-	rx_line_pos = 0;
+	rx_line_index = 0;
 	rx_line[0] = 0;
     }
 }
